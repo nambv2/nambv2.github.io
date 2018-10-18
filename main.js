@@ -1,19 +1,22 @@
-const socket = io('https://vaio2018.herokuapp.com/');
-
+// const socket = io('https://vaio2018.herokuapp.com/');
+const socket = io('http://localhost:3000');
 $('#div-chat').hide();
+$('#currentUser').hide();
+var currentPeerId;
 
 socket.on('DANH_SACH_ONLINE', arrUserInfo => {
     $('#div-chat').show();
     $('#div-dang-ky').hide();
-
     arrUserInfo.forEach(user => {
         const { ten, peerId } = user;
-        $('#ulUser').append(`<li id="${peerId}">${ten}</li>`);
+        if (peerId !== currentPeerId) {
+          $('#ulUser').append(`<li id="${peerId}" style="color: #2ECC71;cursor: pointer;">${ten}</li>`);
+        }
     });
 
     socket.on('CO_NGUOI_DUNG_MOI', user => {
         const { ten, peerId } = user;
-        $('#ulUser').append(`<li id="${peerId}">${ten}</li>`);
+        $('#ulUser').append(`<li id="${peerId}" style="color: #2ECC71;cursor: pointer;">${ten}</li>`);
     });
 
     socket.on('AI_DO_NGAT_KET_NOI', peerId => {
@@ -51,7 +54,8 @@ peer.on('open', id => {
     $('#my-peer').append(id);
     $('#btnSignUp').click(() => {
         const username = $('#txtUsername').val();
-        socket.emit('NGUOI_DUNG_DANG_KY', { ten: username, peerId: id });
+        const password = $('#txtPassword').val();
+        login(username, password, id);
     });
 });
 
@@ -60,7 +64,7 @@ $('#btnCall').click(() => {
     const id = $('#remoteId').val();
     openStream()
     .then(stream => {
-        //playStream('localStream', stream);
+        playStream('localStream', stream);
         const call = peer.call(id, stream);
         call.on('stream', remoteStream => playStream('remoteStream', remoteStream));
     });
@@ -71,19 +75,33 @@ peer.on('call', call => {
     openStream()
     .then(stream => {
         call.answer(stream);
-        //playStream('localStream', stream);
+        playStream('localStream', stream);
         call.on('stream', remoteStream => playStream('remoteStream', remoteStream));
     });
 });
 
-console.log($(this).attr('id'));
 $('#ulUser').on('click', 'li', function() {
     const id = $(this).attr('id');
-    console.log(id);
     openStream()
     .then(stream => {
-        //playStream('localStream', stream);
+        playStream('localStream', stream);
         const call = peer.call(id, stream);
         call.on('stream', remoteStream => playStream('remoteStream', remoteStream));
     });
 });
+
+function login(user, pass, peerId) {
+    const postData = {
+    'username': user,
+    'password': pass
+    };
+    $.post('http://127.0.0.1:3000/login', postData, function (res){
+      if (res) {
+        currentPeerId = peerId;
+        $('.login').hide();
+        $('#currentUser').show();
+        $('#currentUser').append(`<b class="${peerId}">${user}</b>`);
+        socket.emit('NGUOI_DUNG_DANG_KY', { ten: user, peerId: peerId });
+      }
+    });
+}
