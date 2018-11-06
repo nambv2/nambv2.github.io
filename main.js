@@ -1,5 +1,5 @@
-const socket = io('https://vaio2018.herokuapp.com/');
-//const socket = io('http://localhost:3000');
+const socket = io('https://server-node-rtc.herokuapp.com/');
+// const socket = io('http://localhost:3000');
 $('#div-chat').hide();
 $('#currentUser').hide();
 var currentPeerId;
@@ -46,15 +46,13 @@ const peer = new Peer({
     host: 'vaio-peer2018.herokuapp.com', 
     secure: true, 
     port: 443
-    // , 
-    // config: customConfig 
 });
 
 peer.on('open', id => {
-    $('#my-peer').append(id);
+    // $('#my-peer').append(id);
     $('#btnSignUp').click(() => {
-        const username = $('#txtUsername').val();
-        const password = $('#txtPassword').val();
+        const username = $('#username').val();
+        const password = $('#password').val();
         login(username, password, id);
     });
 });
@@ -95,13 +93,19 @@ function login(user, pass, peerId) {
     'username': user,
     'password': pass
     };
-    $.post('http://127.0.0.1:3000/login', postData, function (res){
-      if (res) {
-        currentPeerId = peerId;
-        $('.login').hide();
-        $('#currentUser').show();
-        $('#currentUser').append(`<b class="${peerId}">${user}</b>`);
-        socket.emit('NGUOI_DUNG_DANG_KY', { ten: user, peerId: peerId });
-      }
-    });
+    currentPeerId = peerId;
+    $('.login').hide();
+    $('#currentUser').show();
+    $('#currentUser').append(`<b class="${peerId}">${user}</b>`);
+    socket.emit('NGUOI_DUNG_DANG_KY', { ten: user, peerId: peerId });
+    // $.post('https://server-node-rtc.herokuapp.com/login', postData, function (res){
+    // // $.post('http://127.0.0.1:3000/login', postData, function (res){
+    //   if (res) {
+    //     currentPeerId = peerId;
+    //     $('.login').hide();
+    //     $('#currentUser').show();
+    //     $('#currentUser').append(`<b class="${peerId}">${user}</b>`);
+    //     socket.emit('NGUOI_DUNG_DANG_KY', { ten: user, peerId: peerId });
+    //   }
+    // });
 }
